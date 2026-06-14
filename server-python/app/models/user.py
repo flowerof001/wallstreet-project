@@ -8,7 +8,7 @@ from sqlalchemy import (
     Column, String, DateTime, Boolean, Text, Integer, Float, ForeignKey,
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY
+
 
 from app.database import Base
 
@@ -33,7 +33,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     # 自选股票列表
-    watchlist = Column(ARRAY(String), default=list)
+    watchlist = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     # 已注销的帐号保留 user_id 但标记为不活跃

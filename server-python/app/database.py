@@ -1,4 +1,4 @@
-"""Database engine and session."""
+"""Database engine and session — supports SQLite (default) and PostgreSQL."""
 
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -7,12 +7,20 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Use connect_args to set a shorter timeout
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    connect_args={"timeout": 10, "command_timeout": 10},
-)
+_is_sqlite = "sqlite" in settings.DATABASE_URL
+
+if _is_sqlite:
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=settings.DEBUG,
+        connect_args={"check_same_thread": False},
+    )
+else:
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=settings.DEBUG,
+        connect_args={"timeout": 10, "command_timeout": 10},
+    )
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
@@ -26,7 +34,7 @@ class Base(DeclarativeBase):
 
 
 async def get_db() -> AsyncSession:
-    """Get a database session. Raises if database is unavailable."""
+    """Get a database session."""
     try:
         async with AsyncSessionLocal() as session:
             yield session
