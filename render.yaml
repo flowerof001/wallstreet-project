@@ -6,11 +6,12 @@ services:
     region: singapore
     plan: free
     dockerfilePath: ./server-python/Dockerfile
+    rootDir: .
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres:flower2017A%23flower@db.scochccgdjrkbxwtmunm.supabase.co:5432/postgres
+        value: postgresql+asyncpg://postgres:flower2017A%23flower@db.scochccgdjrkbxwtmunm.supabase.co:6543/postgres
       - key: REDIS_URL
-        value: redis://default:gQAAAAAAAkOBAAIgcDEzYmRhMTgxMTUxZThhNGFmNDgyZTgxZmZkNzg1YWU3YWE@quick-albacore-148353.upstash.io:6379
+        value: rediss://default:gQAAAAAAAkOBAAIgcDEzYmRhMTgxMTUxZThhNGFmNDgyZTgxZmZkNzg1YWU3YWE@quick-albacore-148353.upstash.io:6379
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_USERNAME
