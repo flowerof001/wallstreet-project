@@ -1,2 +1,0 @@
-akshare==1.18.64
-asyncpg==0.29.0
