@@ -1,29 +1,20 @@
 /// API & WebSocket 地址配置
-///
-/// 根据运行环境自动选择本地开发地址或生产环境地址。
+
 class ApiConfig {
-  /// Python FastAPI 服务地址（生产：Render，开发：localhost）
+  /// Python FastAPI 服务地址
   static String get pythonBaseUrl {
-    return _getEnv('PYTHON_API_URL', 'http://localhost:8000');
+    return 'https://wallstreet-python.onrender.com';
   }
 
-  /// WebSocket 地址（现在由 Python FastAPI 提供，不再需要 Go 服务）
+  /// WebSocket 地址
   static String get wsQuotes {
     final base = pythonBaseUrl;
-    // HTTP → WS, HTTPS → WSS
     return base
         .replaceFirst('https://', 'wss://')
         .replaceFirst('http://', 'ws://') + '/ws';
   }
 
-  /// 读取环境变量
-  static String _getEnv(String key, String defaultValue) {
-    // 在生产构建时，Cloudflare Pages 通过 wrangler.toml vars 注入
-    // 或通过 Cloudflare Dashboard → Settings → Environment variables
-    return defaultValue;
-  }
-
-  static bool get isLocalDev => pythonBaseUrl.contains('localhost');
+  static bool get isLocalDev => false;
 
   // ---- Convenience URLs ----
 
