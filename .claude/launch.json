@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wallstreet-flutter-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-c", "import http.server, socketserver, os; os.chdir('/Users/Leslie/Documents/260613_ClaudeCodeProject/260613_WallstreetProject/client/build/web'); srv = socketserver.TCPServer(('', 8901), http.server.SimpleHTTPRequestHandler); srv.serve_forever()"],
+      "port": 8901
+    }
+  ]
+}

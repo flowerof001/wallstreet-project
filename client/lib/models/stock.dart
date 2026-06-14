@@ -74,11 +74,27 @@ class Stock {
 class MarketPage {
   final String id;
   final String name;
+  final List<StockCard> cards;
+  final int layoutColumns;
 
   const MarketPage({
     required this.id,
     required this.name,
+    this.cards = const [],
+    this.layoutColumns = 3,
   });
+
+  factory MarketPage.fromJson(Map<String, dynamic> json) {
+    return MarketPage(
+      id: json['page_id'] as String? ?? json['id'] as String,
+      name: json['name'] as String,
+      cards: (json['cards'] as List<dynamic>?)
+              ?.map((c) => StockCard.fromJson(c as Map<String, dynamic>))
+              .toList() ??
+          [],
+      layoutColumns: json['layout_columns'] as int? ?? 3,
+    );
+  }
 }
 
 /// 走势图卡片模型
@@ -100,6 +116,18 @@ class StockCard {
     this.height = 300,
     this.chartType = 'time_sharing',
   });
+
+  factory StockCard.fromJson(Map<String, dynamic> json) {
+    return StockCard(
+      id: json['card_id'] as String? ?? json['id'] as String,
+      stockCode: json['stock_code'] as String,
+      stockName: json['stock_name'] as String?,
+      position: json['position'] as int? ?? 0,
+      width: (json['width'] as num?)?.toDouble() ?? 400,
+      height: (json['height'] as num?)?.toDouble() ?? 300,
+      chartType: json['chart_type'] as String? ?? 'time_sharing',
+    );
+  }
 
   StockCard copyWith({
     String? id,

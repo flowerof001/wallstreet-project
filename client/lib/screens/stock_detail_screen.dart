@@ -5,6 +5,7 @@ import '../models/stock.dart';
 import '../providers/auth_provider.dart';
 import '../providers/stock_provider.dart';
 import '../services/user_service.dart';
+import '../widgets/stock_chart.dart';
 
 /// 股票详情页
 class StockDetailScreen extends StatefulWidget {
@@ -17,6 +18,33 @@ class StockDetailScreen extends StatefulWidget {
 class _StockDetailScreenState extends State<StockDetailScreen> {
   bool _isInWatchlist = false;
   bool _isToggling = false;
+  String _chartType = 'time_sharing';
+  List<KLineData>? _kLines;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final stockCode =
+        ModalRoute.of(context)?.settings.arguments as String? ?? '000001';
+    final auth = context.read<AuthProvider>();
+    if (auth.isLoggedIn && auth.user.watchlist.contains(stockCode)) {
+      _isInWatchlist = true;
+    }
+  }
+
+  Future<void> _loadKLineData(String code, String period) async {
+    try {
+      final data = await UserService.getKLineHistory(
+          code, period: period, count: 60);
+      if (mounted) {
+        setState(() {
+          _kLines = data.map((m) => KLineData.fromJson(m)).toList();
+        });
+      }
+    } catch (_) {
+      // Silently fail, chart will show placeholder
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +53,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     final stockProv = context.watch<StockProvider>();
     final auth = context.watch<AuthProvider>();
     final stock = stockProv.getStock(stockCode);
-
-    // Check if in watchlist
-    if (auth.isLoggedIn && auth.user.watchlist.contains(stockCode)) {
-      _isInWatchlist = true;
-    }
 
     final isAShare = ['sh', 'sz', 'bj'].contains(stock?.market ?? 'sh');
     final isRise = stock?.isRise ?? true;
@@ -41,7 +64,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
       appBar: AppBar(
         title: Text(stock?.name ?? stockCode),
         actions: [
-          // Add/remove watchlist
           if (auth.isLoggedIn)
             TextButton.icon(
               onPressed: _isToggling ? null : () => _toggleWatchlist(stockCode),
@@ -73,6 +95,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
           children: [
             // 股票基本信息卡片
             Card(
+              color: const Color(0xFF1C3045),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Color(0xFF2A4058)),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -81,9 +108,25 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          stockCode,
-                          style: Theme.of(context).textTheme.headlineLarge,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              stock?.name ?? stockCode,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFBADBFF),
+                              ),
+                            ),
+                            Text(
+                              stockCode,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF8899AA),
+                              ),
+                            ),
+                          ],
                         ),
                         if (stock != null) ...[
                           Column(
@@ -157,6 +200,11 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
             SizedBox(
               height: 450,
               child: Card(
+                color: const Color(0xFF1C3045),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(color: Color(0xFF2A4058)),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -165,10 +213,40 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _ChartTypeBtn(label: t('time_sharing'), active: true),
-                          _ChartTypeBtn(label: t('daily_k')),
-                          _ChartTypeBtn(label: t('monthly_k')),
-                          _ChartTypeBtn(label: t('yearly_k')),
+                          _ChartTypeBtn(
+                            label: t('time_sharing'),
+                            active: _chartType == 'time_sharing',
+                            onTap: () {
+                              setState(() {
+                                _chartType = 'time_sharing';
+                                _kLines = null;
+                              });
+                            },
+                          ),
+                          _ChartTypeBtn(
+                            label: t('daily_k'),
+                            active: _chartType == 'daily_k',
+                            onTap: () {
+                              setState(() => _chartType = 'daily_k');
+                              _loadKLineData(stockCode, 'daily');
+                            },
+                          ),
+                          _ChartTypeBtn(
+                            label: t('monthly_k'),
+                            active: _chartType == 'monthly_k',
+                            onTap: () {
+                              setState(() => _chartType = 'monthly_k');
+                              _loadKLineData(stockCode, 'monthly');
+                            },
+                          ),
+                          _ChartTypeBtn(
+                            label: t('yearly_k'),
+                            active: _chartType == 'yearly_k',
+                            onTap: () {
+                              setState(() => _chartType = 'yearly_k');
+                              _loadKLineData(stockCode, 'yearly');
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -178,12 +256,7 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
                             color: const Color(0xFF0A2740),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Center(
-                            child: Text(
-                              '走势图加载中...',
-                              style: TextStyle(color: Color(0xFF556677)),
-                            ),
-                          ),
+                          child: _buildChart(stock, stockCode),
                         ),
                       ),
                     ],
@@ -197,6 +270,44 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     );
   }
 
+  Widget _buildChart(Stock? stock, String code) {
+    if (_chartType == 'time_sharing') {
+      if (stock != null) {
+        final base = stock.preClose > 0 ? stock.preClose : 100.0;
+        final points = <TimeSharingPoint>[];
+        for (var i = 0; i < 60; i++) {
+          final hour = 9 + i ~/ 10;
+          final min = (i % 10) * 6;
+          final t =
+              '${hour.toString().padLeft(2, '0')}:${min.toString().padLeft(2, '0')}';
+          final offset =
+              (i - 5).toDouble() * (stock.change / stock.preClose * base * 2);
+          points.add(TimeSharingPoint(time: t, price: base + offset));
+        }
+        if (points.isNotEmpty) {
+          points.last =
+              TimeSharingPoint(time: points.last.time, price: stock.currentPrice);
+        }
+        return StockChart(
+          chartType: 'time_sharing',
+          isAShare: ['sh', 'sz', 'bj'].contains(stock.market),
+          preClose: stock.preClose,
+          timeSharingPoints: points,
+        );
+      }
+    } else if (_kLines != null && _kLines!.isNotEmpty) {
+      return StockChart(
+        chartType: _chartType,
+        isAShare: ['sh', 'sz', 'bj'].contains(stock?.market ?? 'sh'),
+        kLines: _kLines,
+      );
+    }
+    return StockChart(
+      chartType: _chartType,
+      isAShare: true,
+    );
+  }
+
   Widget _detailItem(String label, double value) {
     final formatted = value >= 1000000
         ? '${(value / 1000000).toStringAsFixed(1)}M'
@@ -204,23 +315,19 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
     return Column(
       children: [
         Text(label,
-            style: const TextStyle(
-                fontSize: 11, color: Color(0xFF667788))),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF667788))),
         const SizedBox(height: 4),
         Text(formatted,
-            style: const TextStyle(
-                fontSize: 13, color: Color(0xFFBADBFF))),
+            style: const TextStyle(fontSize: 13, color: Color(0xFFBADBFF))),
       ],
     );
   }
 
   Future<void> _toggleWatchlist(String stockCode) async {
     setState(() => _isToggling = true);
-
     try {
       final auth = context.read<AuthProvider>();
       final watchlist = List<String>.from(auth.user.watchlist);
-
       if (_isInWatchlist) {
         watchlist.remove(stockCode);
       } else {
@@ -228,7 +335,6 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
           watchlist.add(stockCode);
         }
       }
-
       await UserService.syncWatchlist(watchlist);
       setState(() {
         _isInWatchlist = !_isInWatchlist;
@@ -248,26 +354,34 @@ class _StockDetailScreenState extends State<StockDetailScreen> {
 class _ChartTypeBtn extends StatelessWidget {
   final String label;
   final bool active;
+  final VoidCallback onTap;
 
-  const _ChartTypeBtn({required this.label, this.active = false});
+  const _ChartTypeBtn({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: active ? const Color(0xFF003EA5).withOpacity(0.3) : null,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: active ? const Color(0xFF5DA3F3) : Colors.transparent,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF003EA5).withOpacity(0.3) : null,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: active ? const Color(0xFF5DA3F3) : Colors.transparent,
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: active ? const Color(0xFF5DA3F3) : const Color(0xFF8899AA),
-          fontSize: 13,
-          fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? const Color(0xFF5DA3F3) : const Color(0xFF8899AA),
+            fontSize: 13,
+            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+          ),
         ),
       ),
     );

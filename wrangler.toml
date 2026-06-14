@@ -2,15 +2,8 @@
 
 # 项目名
 name = "wallstreet"
-# 兼容日期
 compatibility_date = "2024-06-01"
 pages_build_output_dir = "client/build/web"
 
-# 环境变量（生产环境覆盖）
 [vars]
 PYTHON_API_URL = "https://wallstreet-python.onrender.com"
-
-# 路由：SPA 模式，所有路由指向 index.html
-[[routes]]
-pattern = "/*"
-serve = "/index.html"

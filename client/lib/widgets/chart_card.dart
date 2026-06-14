@@ -169,24 +169,24 @@ class _ChartCardState extends State<ChartCard> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'timeline',
                 child: Text(t('time_sharing'), style: TextStyle(fontSize: 12)),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'daily',
                 child: Text(t('daily_k'), style: TextStyle(fontSize: 12)),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'monthly',
                 child: Text(t('monthly_k'), style: TextStyle(fontSize: 12)),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'yearly',
                 child: Text(t('yearly_k'), style: TextStyle(fontSize: 12)),
               ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuDivider(),
+              PopupMenuItem(
                 value: 'remove',
                 child: Text(t('remove_chart'),
                     style: TextStyle(fontSize: 12, color: Color(0xFFFF5757))),

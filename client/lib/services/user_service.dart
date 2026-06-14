@@ -10,25 +10,21 @@ class UserService {
 
   // ---- Token Management ----
 
-  /// 持久化 JWT token
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferencesAsync();
     await prefs.setString(_tokenKey, token);
   }
 
-  /// 读取已保存的 JWT token
   static Future<String?> getToken() async {
     final prefs = await SharedPreferencesAsync();
     return prefs.getString(_tokenKey);
   }
 
-  /// 清除 JWT token（登出时调用）
   static Future<void> clearToken() async {
     final prefs = await SharedPreferencesAsync();
     await prefs.remove(_tokenKey);
   }
 
-  /// 构建带 Auth header 的请求头
   static Future<Map<String, String>> _authHeaders() async {
     final token = await getToken();
     return {
@@ -37,7 +33,6 @@ class UserService {
     };
   }
 
-  /// 通用 GET 请求
   static Future<Map<String, dynamic>> _get(String url) async {
     final resp = await http.get(
       Uri.parse(url),
@@ -49,7 +44,6 @@ class UserService {
     throw _apiError(resp);
   }
 
-  /// 通用 POST 请求
   static Future<Map<String, dynamic>> _post(
     String url,
     Map<String, dynamic> body,
@@ -65,7 +59,6 @@ class UserService {
     throw _apiError(resp);
   }
 
-  /// 通用 PUT 请求
   static Future<Map<String, dynamic>> _put(
     String url,
     Map<String, dynamic> body,
@@ -81,7 +74,6 @@ class UserService {
     throw _apiError(resp);
   }
 
-  /// 通用 DELETE 请求
   static Future<Map<String, dynamic>> _delete(String url) async {
     final resp = await http.delete(
       Uri.parse(url),
@@ -106,7 +98,6 @@ class UserService {
 
   // ---- Auth APIs ----
 
-  /// 发送手机验证码
   static Future<void> sendCode(String countryCode, String phone) async {
     await _post(ApiConfig.authSendCode, {
       'country_code': countryCode,
@@ -114,7 +105,6 @@ class UserService {
     });
   }
 
-  /// 验证码登录/注册，返回 User 和 JWT token
   static Future<User> loginWithCode(
     String countryCode,
     String phone,
@@ -125,15 +115,11 @@ class UserService {
       'phone': phone,
       'code': code,
     });
-
-    // 保存 token
     final token = data['access_token'] as String;
     await saveToken(token);
-
     return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
-  /// 获取当前用户信息（用于恢复会话）
   static Future<User?> getMe() async {
     try {
       final token = await getToken();
@@ -148,7 +134,6 @@ class UserService {
 
   // ---- User APIs ----
 
-  /// 修改密码
   static Future<Map<String, dynamic>> changePassword({
     String? oldPassword,
     required String newPassword,
@@ -161,36 +146,30 @@ class UserService {
     });
   }
 
-  /// 注销帐号
   static Future<void> deleteAccount() async {
     await _delete(ApiConfig.userMe);
     await clearToken();
   }
 
-  /// 同步自选股票列表
   static Future<void> syncWatchlist(List<String> codes) async {
     await _put(ApiConfig.userWatchlist, {'codes': codes});
   }
 
   // ---- Market Pages APIs ----
 
-  /// 获取所有行情页面
   static Future<List<Map<String, dynamic>>> getPages() async {
     final data = await _get(ApiConfig.userPages);
     return (data as List?)?.cast<Map<String, dynamic>>() ?? [];
   }
 
-  /// 创建行情页面
   static Future<Map<String, dynamic>> createPage(String name) async {
     return _post(ApiConfig.userPages, {'name': name});
   }
 
-  /// 删除行情页面
   static Future<void> deletePage(String pageId) async {
     await _delete('${ApiConfig.userPages}/$pageId');
   }
 
-  /// 添加走势图卡片到页面
   static Future<Map<String, dynamic>> addCard(
     String pageId,
     String stockCode, {
@@ -202,12 +181,10 @@ class UserService {
     });
   }
 
-  /// 移除走势图卡片
   static Future<void> removeCard(String pageId, String cardId) async {
     await _delete(ApiConfig.userPageCard(pageId, cardId));
   }
 
-  /// 更新卡片布局
   static Future<void> updateCard(
     String pageId,
     String cardId, {
@@ -226,13 +203,26 @@ class UserService {
 
   // ---- Search APIs ----
 
-  /// 搜索股票（调用 Python API）
   static Future<List<Map<String, dynamic>>> searchStocks(String keyword) async {
     final url = '${ApiConfig.searchStocks}?q=${Uri.encodeComponent(keyword)}';
     final data = await _get(url);
     final results = data['results'] as List?;
     if (results == null) return [];
     return results.cast<Map<String, dynamic>>();
+  }
+
+  // ---- Market Data ----
+
+  static Future<List<Map<String, dynamic>>> getKLineHistory(
+    String code, {
+    String period = 'daily',
+    int count = 60,
+  }) async {
+    final url = ApiConfig.history(code, period: period, count: count);
+    final data = await _get(url);
+    final kLines = data['k_lines'] as List?;
+    if (kLines == null) return [];
+    return kLines.cast<Map<String, dynamic>>();
   }
 }
 

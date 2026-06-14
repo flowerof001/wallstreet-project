@@ -154,9 +154,6 @@ class StockChart extends StatelessWidget {
     final downColor =
         isAShare ? const Color(0xFF2FAC00) : const Color(0xFFFF5757);
 
-    final spots = <int, List<CandlestickData>>{
-      // 简化：使用 BarChart 模拟蜡烛图
-    };
 
     final bars = <BarChartGroupData>[];
     for (var i = 0; i < lines.length; i++) {
