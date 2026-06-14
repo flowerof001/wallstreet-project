@@ -1,4 +1,4 @@
-"""Wallstreet Python Server — 用户系统 + 管理后台 API
+"""Wallstreet Python Server — 用户系统 + 管理后台 API + 实时行情
 
 FastAPI application entry point.
 """
@@ -9,16 +9,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routes import auth, user, admin, search, market
+from app.routes import auth, user, admin, search, market, websocket
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: run migrations
+    # Startup: create tables + start market collector
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    websocket.start_collector()
     yield
     # Shutdown
+    websocket.stop_collector()
     await engine.dispose()
 
 
@@ -43,6 +45,7 @@ app.include_router(user.router, prefix="/api/v1/user", tags=["User"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
 app.include_router(market.router, prefix="/api/v1", tags=["Market"])
+app.include_router(websocket.router, tags=["WebSocket"])
 
 
 @app.get("/health")
