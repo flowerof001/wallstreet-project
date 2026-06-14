@@ -1,0 +1,41 @@
+# Flutter
+client/build/
+client/.dart_tool/
+client/.packages
+client/.pub-cache/
+client/.flutter-plugins
+client/.flutter-plugins-dependencies
+client/pubspec.lock
+
+# Go
+server-go/bin/
+server-go/tmp/
+
+# Python
+server-python/__pycache__/
+server-python/**/__pycache__/
+server-python/.venv/
+server-python/venv/
+server-python/*.pyc
+server-python/.pytest_cache/
+
+# Node
+admin/node_modules/
+admin/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+
+# Docker
+docker-compose.override.yml

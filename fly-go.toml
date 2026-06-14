@@ -1,0 +1,20 @@
+# Fly.io 部署配置 — Go 服务
+app = "wallstreet-go"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  REDIS_ADDR = "fly-upstash-redis.upstash.io"
+
+[[services]]
+  internal_port = 8080
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls"]
+    port = 443

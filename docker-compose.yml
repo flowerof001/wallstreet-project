@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wallstreet
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Go — 实时行情推送
+  go-server:
+    build:
+      context: ./server-go
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      REDIS_ADDR: redis:6379
+      AKSHARE_URL: http://python-server:8000
+    depends_on:
+      - redis
+
+  # Python — 用户系统 + 管理后台 API
+  python-server:
+    build:
+      context: ./server-python
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/wallstreet
+      REDIS_URL: redis://redis:6379
+      MARKET_SERVICE_URL: http://go-server:8080
+    depends_on:
+      - postgres
+      - redis
+
+  # Admin 管理后台
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - python-server
+
+volumes:
+  pgdata:

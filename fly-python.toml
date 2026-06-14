@@ -1,0 +1,23 @@
+# Fly.io 部署配置 — Python 服务
+app = "wallstreet-python"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DEBUG = "false"
+  DATABASE_URL = "postgresql+asyncpg://postgres:password@db.xxxxx.supabase.co:5432/postgres"
+  REDIS_URL = "redis://default:password@fly-upstash-redis.upstash.io:6379"
+  JWT_SECRET = "change-this-to-a-random-string-in-production"
+  MARKET_SERVICE_URL = "https://wallstreet-go.fly.dev"
+
+[[services]]
+  internal_port = 8000
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls"]
+    port = 443

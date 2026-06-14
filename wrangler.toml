@@ -1,0 +1,22 @@
+# Cloudflare Pages 配置 — WallstreetProject
+
+# 项目名
+name = "wallstreet"
+# 兼容日期
+compatibility_date = "2024-06-01"
+
+# 构建配置
+[build]
+command = "cd client && flutter pub get && flutter build web --release"
+output_dir = "client/build/web"
+root_dir = "/"
+
+# 环境变量（生产环境覆盖）
+[vars]
+PYTHON_API_URL = "https://wallstreet-python.fly.dev"
+GO_WS_URL = "wss://wallstreet-go.fly.dev/ws"
+
+# 路由：SPA 模式，所有路由指向 index.html
+[[routes]]
+pattern = "/*"
+serve = "/index.html"

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go version *)",
+      "Bash(brew install *)",
+      "Bash(/Users/Leslie/.homebrew/bin/go version *)",
+      "Bash(pip3 install *)"
+    ]
+  }
+}
