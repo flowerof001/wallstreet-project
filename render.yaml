@@ -3,7 +3,7 @@ services:
   - type: web
     name: wallstreet-python
     env: docker
-    region: singapore
+    region: oregon
     plan: free
     rootDir: server-python
     dockerfilePath: Dockerfile

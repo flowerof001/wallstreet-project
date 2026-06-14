@@ -1,23 +1,27 @@
-# Fly.io 部署配置 — Python 服务
 app = "wallstreet-python"
+primary_region = "sin"
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "server-python/Dockerfile"
 
 [env]
-  DEBUG = "false"
-  DATABASE_URL = "postgresql+asyncpg://postgres:password@db.xxxxx.supabase.co:5432/postgres"
-  REDIS_URL = "redis://default:password@fly-upstash-redis.upstash.io:6379"
-  JWT_SECRET = "change-this-to-a-random-string-in-production"
-  MARKET_SERVICE_URL = "https://wallstreet-go.fly.dev"
+  PORT = "8000"
+  DATABASE_URL = "postgresql+asyncpg://postgres:flower2017A%23flower@db.scochccgdjrkbxwtmunm.supabase.co:6543/postgres"
+  REDIS_URL = "rediss://default:gQAAAAAAAkOBAAIgcDEzYmRhMTgxMTUxZThhNGFmNDgyZTgxZmZkNzg1YWU3YWE@quick-albacore-148353.upstash.io:6379"
+  JWT_SECRET = "wallstreet-jwt-secret-prod-2026"
+  ADMIN_USERNAME = "admin"
+  ADMIN_PASSWORD = "admin123"
+  SMS_PROVIDER = "mock"
+  MARKET_SERVICE_URL = "https://wallstreet-python.fly.dev"
 
 [[services]]
   internal_port = 8000
+  protocol = "tcp"
 
   [[services.ports]]
     handlers = ["http"]
     port = 80
 
   [[services.ports]]
-    handlers = ["tls"]
+    handlers = ["tls", "http"]
     port = 443
