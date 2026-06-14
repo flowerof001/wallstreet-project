@@ -5,8 +5,8 @@ services:
     env: docker
     region: singapore
     plan: free
-    dockerfilePath: ./server-python/Dockerfile
-    rootDir: .
+    rootDir: server-python
+    dockerfilePath: Dockerfile
     envVars:
       - key: DATABASE_URL
         value: postgresql+asyncpg://postgres:flower2017A%23flower@db.scochccgdjrkbxwtmunm.supabase.co:6543/postgres
