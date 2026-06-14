@@ -9,15 +9,14 @@ class I18nService {
   I18nService._internal();
 
   Map<String, dynamic> _currentLocale = {};
-  AppLocale _locale = AppLocale.zhCN;
+  AppLocale _locale = AppLocale.en;
 
   AppLocale get currentLocale => _locale;
   String get localeCode => _locale.languageCode;
 
   /// 初始化，加载默认语言
   Future<void> init() async {
-    // TODO: 从持久化存储读取用户上次选择的语言
-    await loadLocale(AppLocale.zhCN);
+    await loadLocale(AppLocale.en);
   }
 
   /// 加载指定语言
@@ -28,15 +27,64 @@ class I18nService {
       final jsonStr = await rootBundle.loadString(filePath);
       _currentLocale = jsonDecode(jsonStr);
     } catch (e) {
-      // 降级到英文
-      final fallback = await rootBundle.loadString('lib/i18n/locales/en.json');
-      _currentLocale = jsonDecode(fallback);
+      try {
+        final fallback = await rootBundle.loadString('lib/i18n/locales/en.json');
+        _currentLocale = jsonDecode(fallback);
+      } catch (_) {
+        _currentLocale = _hardcodedEnglish();
+      }
     }
   }
 
   /// 获取翻译文本
   String t(String key) {
     return _currentLocale[key]?.toString() ?? key;
+  }
+
+  /// 硬编码英文翻译作为最终降级
+  static Map<String, dynamic> _hardcodedEnglish() {
+    return {
+      'home': 'Home',
+      'watchlist': 'Watchlist',
+      'settings': 'Settings',
+      'login': 'Login / Register',
+      'market_overview': 'Market Overview',
+      'search_stock': 'Search stocks...',
+      'add_to_watchlist': 'Add to Watchlist',
+      'added': 'Added',
+      'time_sharing': 'Time Sharing',
+      'daily_k': 'Daily K',
+      'monthly_k': 'Monthly K',
+      'yearly_k': 'Yearly K',
+      'change_password': 'Change Password',
+      'delete_account': 'Delete Account',
+      'delete_account_confirm': 'Delete account?',
+      'confirm': 'Confirm',
+      'cancel': 'Cancel',
+      'submit': 'Submit',
+      'send_code': 'Send Code',
+      'enter_phone': 'Enter phone number',
+      'enter_code': 'Enter verification code',
+      'country_code': 'Country Code',
+      'current_password': 'Current Password',
+      'new_password': 'New Password',
+      'confirm_password': 'Confirm Password',
+      'password_rule': '6-32 characters',
+      'market_shanghai_shenzhen': 'Shanghai & Shenzhen',
+      'market_beijing': 'Beijing Exchange',
+      'market_hongkong': 'Hong Kong',
+      'market_us': 'US Market',
+      'page': 'Page',
+      'add_chart': 'Add Chart',
+      'remove_chart': 'Remove Chart',
+      'stock_detail': 'Stock Detail',
+      'drag_to_reorder': 'Drag to reorder',
+      'zoom_in': 'Zoom In',
+      'zoom_out': 'Zoom Out',
+      'admin_dashboard': 'Admin Dashboard',
+      'logout': 'Logout',
+      'personal_center': 'My Account',
+    };
   }
 }
 

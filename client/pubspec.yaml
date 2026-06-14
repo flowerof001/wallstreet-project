@@ -29,3 +29,5 @@ flutter:
 
   assets:
     - lib/i18n/locales/
+    - lib/i18n/locales/en.json
+    - lib/i18n/locales/zh_CN.json
